@@ -13,6 +13,7 @@
 // [mam-product-category-h1]
 function mam_product_category_h1($atts)
 {
+    $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $items = array();
     $item = array();
     if (is_shop()) {
@@ -22,7 +23,6 @@ function mam_product_category_h1($atts)
         //$items[] = $item;
     }
     if (is_tax()) {
-        $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $array_parts = explode('/', $actual_link);
         array_pop($array_parts);
         $item['slug'] = [array_pop($array_parts), 'pa_' . array_pop($array_parts)];
@@ -44,7 +44,6 @@ function mam_product_category_h1($atts)
         } else {
             continue;
         }
-        $item['url-before'] = $last_item['url'];
         if (strpos($last_item['url'], '?') == false) {
             $item['url'] = $last_item['url'] . '?' . $item['slug'][1] . '=' . $item['slug'][0];
         } else {
@@ -77,13 +76,21 @@ function mam_product_category_h1($atts)
                 <?
             }
         }
+        if(empty($items)){
+            echo get_the_title(get_option('woocommerce_shop_page_id'));
+        }
         ?>
     </h1>
     <script>
         // Update selected filters
         jQuery(document).ready(function ($) {
             <?php
+            $actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
             foreach ($items as $item) {
+
+            $item['remove-before'] = str_replace( $item['slug'][1] . '=' . $item['slug'][0], '', $actual_link );
+            $item['remove-before'] = str_replace( '?&', '?', $item['remove-before'] );
+            $item['remove-before'] = str_replace( '&&', '&', $item['remove-before'] );
 
             if (!$item['slug'][0] || !$item['slug'][1]) {
                 continue;
@@ -93,7 +100,7 @@ function mam_product_category_h1($atts)
                 .parent().find('.woof_radio_label').addClass('woof_checkbox_label_selected')
                 .click(function (e) {
                     e.preventDefault();
-                    window.location.href = '<?php echo $item['url-before']; ?>';
+                    window.location.href = '<?php echo $item['remove-before']; ?>';
                 });
             <?php
             if (strpos($item['slug'][1], 'woof_text') !== false) {
